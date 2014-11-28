@@ -15,10 +15,11 @@ import Data.Time.Calendar         (Day, fromGregorian)
 import Language.Haskell.TH        (DecsQ)
 import Language.Haskell.TH.Lift   (deriveLift)
 import Language.Haskell.TH.Syntax (lift)
-import Text.Parsec                ((<|>), Parsec, anyChar, char, choice, digit, eof, letter, newline, parse, string, try)
-import Text.Parsec.Combinator     (lookAhead, many1, manyTill)
+import Text.Parsec.Char           (anyChar, char, digit, letter, newline, string)
+import Text.Parsec.Combinator     (choice, eof, lookAhead, many1, manyTill)
 import Text.Parsec.Language       (haskell)
 import Text.Parsec.Perm           ((<$$>), (<$?>), (<|?>), permute)
+import Text.Parsec.Prim           ((<|>), Parsec, parse, try)
 import Text.Parsec.Token          (decimal)
 
 -- instance Day
