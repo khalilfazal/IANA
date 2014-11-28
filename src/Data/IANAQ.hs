@@ -1,5 +1,4 @@
 {-# Language QuasiQuotes, TemplateHaskell #-}
-
 module Data.IANAQ (
     loadRegistry,
     LanguageTag (..),
