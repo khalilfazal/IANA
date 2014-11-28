@@ -1,0 +1,22 @@
+name:          IANA
+version:       0.0
+synopsis:      RFC 5646 Tags for Identifying Languages
+author:        Khalil Fazal <khalil.fazal@uoit.net>
+maintainer:    Khalil Fazal <khalil.fazal@uoit.net>
+category:      Data
+build-type:    Simple
+cabal-version: >= 1.2
+data-files:    registry.txt
+
+library
+    hs-source-dirs:  src
+    exposed-modules: Data.IANA, Data.IANAQ
+    ghc-options:     -dynamic-too
+    build-depends:   base,
+                     composition,
+                     errors,
+                     parsec,
+                     semigroupoids,
+                     template-haskell,
+                     th-lift,
+                     time
