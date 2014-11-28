@@ -2,6 +2,7 @@
 module Data.IANAQ (
     loadRegistry,
     LanguageTag (..),
+    Type (..)
 ) where
 
 import Control.Applicative        ((<*))

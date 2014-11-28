@@ -6,7 +6,7 @@ module Data.IANA (
 ) where
 
 import Data.IANAQ      (loadRegistry)
-import Data.IANAQ as X (LanguageTag (..))
+import Data.IANAQ as X (LanguageTag (..), Type (..))
 
 loadRegistry
 
