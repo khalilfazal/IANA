@@ -92,10 +92,10 @@ pKeyValue x = try . (string x >>) . (<* carriageReturn)
 -- parser for LanguageTag
 pLanguageTag :: Parsec String () LanguageTag
 pLanguageTag = do
-    t     <- string "%%\nType: " >> pType <* newline
+    t <- string "%%\nType: " >> pType <* newline
     (tg, sTag) <- permute ((,) <$?> pOption "Tag: " (many1 (alnum <|> char '-'))
                                <|?> pOption "Subtag: " (many1 (alnum <|> char '.')))
-    desc  <- many1 (string "Description: " >> manyTill anyChar newline)
+    desc <- many1 (string "Description: " >> manyTill anyChar newline)
     (addDate, depDate, sscript, s, m, v, c, p) <- permute ((,,,,,,,) <$$> try (string "Added: " >> pDate <* carriageReturn)
                                                                      <|?> pOption "Deprecated: "      pDate
                                                                      <|?> pOption "Suppress-Script: " (many1 letter)
