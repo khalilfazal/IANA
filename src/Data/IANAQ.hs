@@ -73,8 +73,8 @@ deriveLift ''LanguageTag
 alnum :: Parsec String () Char
 alnum = letter <|> digit
 
-carriageReturn :: Parsec String () ()
-carriageReturn = void newline <|> eof
+eolEof :: Parsec String () ()
+eolEof = void newline <|> eof
 
 hyphened :: Parsec String () Char
 hyphened = letter <|> char '-'
@@ -87,23 +87,25 @@ toMaybe :: Functor f => f b -> (Maybe a, f (Maybe b))
 toMaybe = (,) Nothing . fmap Just
 
 pKeyValue :: String -> Parsec String () a -> Parsec String () a
-pKeyValue x = try . (string x >>) . (<* carriageReturn)
+pKeyValue x = try . (string x >>) . (<* eolEof)
 
 -- parser for LanguageTag
 pLanguageTag :: Parsec String () LanguageTag
 pLanguageTag = do
     t <- string "%%\nType: " >> pType <* newline
-    (tg, sTag) <- permute ((,) <$?> pOption "Tag: " (many1 (alnum <|> char '-'))
-                               <|?> pOption "Subtag: " (many1 (alnum <|> char '.')))
+    (tg, sTag) <- permute $ (,)
+        <$?> pOption "Tag: "    (many1 (alnum <|> char '-'))
+        <|?> pOption "Subtag: " (many1 (alnum <|> char '.'))
     desc <- many1 (string "Description: " >> manyTill anyChar newline)
-    (addDate, depDate, sscript, s, m, v, c, p) <- permute ((,,,,,,,) <$$> try (string "Added: " >> pDate <* carriageReturn)
-                                                                     <|?> pOption "Deprecated: "      pDate
-                                                                     <|?> pOption "Suppress-Script: " (many1 letter)
-                                                                     <|?> pOption "Scope: "           (many1 hyphened)
-                                                                     <|?> pOption "Macrolanguage: "   (many1 letter)
-                                                                     <|?> pOption "Preferred-Value: " (many1 (alnum <|> char '-'))
-                                                                     <|?> pOption "Comments: "        (manyTill anyChar (lookAhead carriageReturn))
-                                                                     <|?> ((toMaybe . many1) .: pKeyValue) "Prefix: " (many1 hyphened))
+    (addDate, depDate, sscript, s, m, v, c, p) <- permute $ (,,,,,,,)
+        <$$> try (string "Added: " >> pDate <* eolEof)
+        <|?> pOption "Deprecated: "      pDate
+        <|?> pOption "Suppress-Script: " (many1 letter)
+        <|?> pOption "Scope: "           (many1 hyphened)
+        <|?> pOption "Macrolanguage: "   (many1 letter)
+        <|?> pOption "Preferred-Value: " (many1 (alnum <|> char '-'))
+        <|?> pOption "Comments: "        (manyTill anyChar (lookAhead eolEof))
+        <|?> ((toMaybe . many1) .: pKeyValue) "Prefix: " (many1 hyphened)
     return $ LanguageTag t tg sTag desc addDate depDate sscript s m v c p
 
 data Registry = Registry {
