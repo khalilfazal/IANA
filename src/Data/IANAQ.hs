@@ -1,4 +1,6 @@
-{-# Language QuasiQuotes, TemplateHaskell #-}
+{-# Language QuasiQuotes #-}
+{-# Language RecordWildCards #-}
+{-# Language TemplateHaskell #-}
 module Data.IANAQ (
     loadRegistry,
     LanguageTag (..),
@@ -23,7 +25,7 @@ import Text.Parsec.Perm           ((<$$>), (<$?>), (<|?>), permute)
 import Text.Parsec.Prim           ((<|>), Parsec, parse, try)
 import Text.Parsec.Token          (decimal)
 
--- instance Day
+-- instance Lift Day
 deriveLift ''Day
 
 -- decimal parser
@@ -55,11 +57,11 @@ pType = choice
      string "redundant"     $> Redundant]
 
 data LanguageTag = LanguageTag {
-    ty             :: Type,
+    ty             :: !Type,
     tag            :: Maybe String,
     subTag         :: Maybe String,
     description    :: [String],
-    added          :: Day,
+    added          :: !Day,
     deprecated     :: Maybe Day,
     suppressScript :: Maybe String,
     scope          :: Maybe String,
@@ -94,12 +96,12 @@ pKeyValue x = try . (string x >>) . (<* eolEof)
 -- parser for LanguageTag
 pLanguageTag :: Parsec String () LanguageTag
 pLanguageTag = do
-    t <- string "%%\nType: " >> pType <* newline
-    (tg, sTag) <- permute $ (,)
+    ty            <- string "%%\nType: " >> pType <* newline
+    (tag, subTag) <- permute $ (,)
         <$?> pOption "Tag: "    (many1 (alnum <|> char '-'))
         <|?> pOption "Subtag: " (many1 (alnum <|> char '.'))
-    desc <- many1 (string "Description: " >> manyTill anyChar newline)
-    (addDate, depDate, sscript, s, m, v, c, p) <- permute $ (,,,,,,,)
+    description <- many1 (string "Description: " >> manyTill anyChar newline)
+    (added, deprecated, suppressScript, scope, macrolanguage, preferredValue, comments, prefix) <- permute $ (,,,,,,,)
         <$$> try (string "Added: " >> pDate <* eolEof)
         <|?> pOption "Deprecated: "      pDate
         <|?> pOption "Suppress-Script: " (many1 letter)
@@ -108,19 +110,19 @@ pLanguageTag = do
         <|?> pOption "Preferred-Value: " (many1 (alnum <|> char '-'))
         <|?> pOption "Comments: "        (manyTill anyChar (lookAhead eolEof))
         <|?> ((toMaybe . many1) .: pKeyValue) "Prefix: " (many1 hyphened)
-    return $ LanguageTag t tg sTag desc addDate depDate sscript s m v c p
+    return LanguageTag{..}
 
 data Registry = Registry {
-    fileDate  :: Day,
+    fileDate  :: !Day,
     languageTags :: [LanguageTag]
 } deriving Show
 
 -- parser for Registry
 pRegistry :: Parsec String () Registry
 pRegistry = do
-    date  <- string "File-Date: " >> pDate <* newline
-    langs <- many1 pLanguageTag
-    return $ Registry date langs
+    fileDate  <- string "File-Date: " >> pDate <* newline
+    languageTags <- many1 pLanguageTag
+    return Registry{..}
 
 loadRegistry :: DecsQ
 loadRegistry =
